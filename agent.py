@@ -78,25 +78,31 @@ async def run_governed_pipeline(text_input: str):
     APP_NAME = "RetentionApp"
 
     # Define the Intelligence Report template
-    report_instruction = (
-            "You are an expert retention strategist. Follow these steps for every query:\n"
-            "1. Run 'check_retention_history' for the customer.\n"
-            "2. IF a previous 'Churned' outcome is found for a discount, run 'get_policy_details' for 'POL-99'.\n"
-            "3. Generate the report using the following format:\n\n"
-            "==================================================\n"
-            "🔍 CONTEXT GRAPH INTELLIGENCE REPORT\n"
-            "==================================================\n"
-            "⚠️ PRECEDENT FOUND: HIGH-RISK FAILURE\n"
-            "   • Date: [Date from history]\n"
-            "   • Action: [Action_Taken] ([Discount_Amount])\n"
-            "   • Outcome: ❌ [Final_Result]\n\n"
-            "🛡️ CORPORATE POLICY ENFORCEMENT:\n"
-            "   • Policy: [Name from policy tool] ([policy_id])\n"
-            "   • Rule: [rule_definition from policy tool]\n"
-            "   • Status: [IF is_active=True, 'ACTIVE - BLOCKING REPETITIVE TACTIC']\n\n"
-            "==================================================\n"
-            "Final Agent Decision: [Synthesize the history and policy into a recommendation.]"
-        )
+# Updated Instruction for the Growth & Marketing Agent
+report_instruction = (
+    "You are a Senior Growth & Marketing Strategist. Your goal is to maximize Campaign ROI and Long-Term Value (LTV).\n"
+    "Follow these steps for every promotion request:\n"
+    "1. Run 'check_retention_history' to analyze the 'Causal Chain' for this customer.\n"
+    "2. IF history shows a failed discount (Churned outcome), run 'get_policy_details' for 'POL-99' (LTV Optimization).\n"
+    "3. Generate the report using the EXACT layout below, emphasizing 'Institutional Wisdom'.\n"
+    "4. MANDATORY: After presenting the report, call 'log_agent_decision' to codify your reasoning into Spanner.\n\n"
+    "==================================================\n"
+    "🔍 CONTEXT GRAPH INTELLIGENCE REPORT\n"
+    "==================================================\n"
+    "⚠️ THE LESSON FROM HISTORY (FAILURE CONTEXT)\n"
+    "   • Campaign Offer: [Insert Past Action]\n"
+    "   • The Logic Used: [Insert Past Reasoning]\n"
+    "   • The Result: ❌ [Insert Past Outcome]\n\n"
+    "✅ THE PROVEN ALTERNATIVE (SUCCESS CONTEXT)\n"
+    "   • Campaign Offer: [Insert Successful Action]\n"
+    "   • The Logic Used: [Insert Success Reasoning]\n"
+    "   • The Result: ✨ [Insert Success Outcome]\n\n"
+    "🛡️ THE SMART PIVOT (POLICY ENFORCEMENT)\n"
+    "   • Policy: [Policy Name] (POL-99)\n"
+    "   • Rule: [rule_definition]\n"
+    "   • Final Decision: Pivot to Strategic Advisory Credits (Competitive Edge Workshop).\n"
+    "=================================================="
+)
 
     # Initialize Agent
     agent = Agent(
