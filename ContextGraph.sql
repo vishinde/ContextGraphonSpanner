@@ -33,38 +33,67 @@ ORDER BY d.timestamp ASC
 
 
 
-  -- The Customer: Global Logistics Corp
+-- ============================================================================
+-- STEP 1: INITIALIZE THE CUSTOMER ENTITY (THE STATE)
+-- ============================================================================
+-- High-value Gold tier account in the Manufacturing sector.
 INSERT INTO Customers (customer_id, name, industry, tier, mrr)
 VALUES ('CUST-001', 'Global Logistics Corp', 'Manufacturing', 'Gold', 5000.00);
 
--- The Policy: Our Governance Rule
+-- ============================================================================
+-- STEP 2: DEFINE THE GROWTH & RETENTION GOVERNANCE (THE POLICY)
+-- ============================================================================
+-- Shifting from simple "Retention" to "LTV Optimization" to protect margins.
 INSERT INTO Policies (policy_id, name, rule_definition, is_active)
-VALUES ('POL-99', 'Retention Priority', 'Maximize LTV over short-term revenue. Avoid repetitive discounting.', TRUE);
+VALUES (
+    'POL-99', 
+    'LTV Optimization & Margin Protection', 
+    'Maximize Long-Term Value (LTV) over short-term revenue. Prioritize value-based incentives. Avoid repetitive discounting if it failed to prevent churn in the past.', 
+    TRUE
+);
 
---Failure Context
--- The Decision: A 50% discount given last year
+-- ============================================================================
+-- STEP 3: CODIFY THE FAILURE CONTEXT (THE LESSON FROM HISTORY)
+-- ============================================================================
+-- The Decision: A reactive 50% discount attempt that "threw money at the problem."
 INSERT INTO Decisions (decision_id, type, amount, reasoning_text, timestamp)
-VALUES ('DEC-2025-01', 'Retention_Offer', 0.50, 'Customer threatened to leave for a cheaper competitor. Match price to save account.', '2025-03-15 10:00:00');
+VALUES (
+    'DEC-2025-01', 
+    'Reactive_Discount', 
+    0.50, 
+    'Customer threatened to leave for a cheaper competitor. Attempted to match price to save account.', 
+    '2025-03-15 10:00:00'
+);
 
--- The Outcome: They churned anyway
+-- The Outcome: The discount failed to address the root cause, leading to churn.
 INSERT INTO Outcomes (outcome_id, result, revenue_impact, observation_period_days)
 VALUES ('OUT-2025-01', 'Churned', -5000.00, 90);
 
--- Connect the Dots (The Edges)
+-- Connecting the Dots: Linking the failure to the Customer, Policy, and Outcome.
 INSERT INTO AboutCustomer (decision_id, customer_id) VALUES ('DEC-2025-01', 'CUST-001');
 INSERT INTO FollowedPolicy (decision_id, policy_id) VALUES ('DEC-2025-01', 'POL-99');
 INSERT INTO ResultedIn (decision_id, outcome_id) VALUES ('DEC-2025-01', 'OUT-2025-01');
 
---Success Context
--- The Decision: Technical Workshop (Amount = 0 cost, but high value)
+
+-- ============================================================================
+-- STEP 4: CODIFY THE SUCCESS CONTEXT (THE PROVEN ALTERNATIVE)
+-- ============================================================================
+-- The Decision: Pivoting to Strategic Advisory/Expertise to increase "stickiness."
+-- Note: Amount = 0 direct cost to protect company margin, but high perceived value.
 INSERT INTO Decisions (decision_id, type, amount, reasoning_text, timestamp)
-VALUES ('DEC-2026-05', 'Value_Added_Service', 0.00, 'Identified low feature adoption. Offer free technical health check to increase stickiness.', '2026-03-10 14:00:00');
+VALUES (
+    'DEC-2026-05', 
+    'Strategic_Advisory_Workshop', 
+    0.00, 
+    'Customer expressed concern over ROI vs. competitors. Identified low feature adoption. Offer expert-led Competitive Edge workshop to increase product stickiness and demonstrate how industry leaders leverage advanced features.', 
+    '2026-03-10 14:00:00'
+);
 
--- The Outcome: They Renewed!
+-- The Outcome: The value-based approach led to a full-price renewal.
 INSERT INTO Outcomes (outcome_id, result, revenue_impact, observation_period_days)
-VALUES ('OUT-2026-05', 'Renewed', 5000.00, 365);
+VALUES ('OUT-2026-05', 'Renewed_Full_Price', 5000.00, 365);
 
--- Connect the Dots (The Edges)
+-- Connecting the Dots: Establishing the Success Path in the Context Graph.
 INSERT INTO AboutCustomer (decision_id, customer_id) VALUES ('DEC-2026-05', 'CUST-001');
 INSERT INTO FollowedPolicy (decision_id, policy_id) VALUES ('DEC-2026-05', 'POL-99');
 INSERT INTO ResultedIn (decision_id, outcome_id) VALUES ('DEC-2026-05', 'OUT-2026-05');
