@@ -1,7 +1,9 @@
-🚀 Agentic Growth Strategist (MCP Edition)
+**Agentic Growth Strategist (MCP Edition)**
+
 This repository contains a System of Intelligence designed to analyze customer friction and provide governed retention recommendations. It leverages Spanner Graph for "Institutional Memory" and the Model Context Protocol (MCP) Toolbox for seamless tool integration.
 
-🏗️ Architecture Overview
+**Architecture Overview**
+
 The system follows a three-layer intelligence model:
 
 Memory Layer: Historical decisions and outcomes stored in Spanner Graph.
@@ -10,7 +12,8 @@ Governance Layer: Corporate policies (extracted from PDFs) stored in Spanner SQL
 
 Action Layer: A Gemini 2.0 Agent that uses the MCP Toolbox to query both memory and rules to synthesize a recommendation.
 
-📂 File Structure
+**File Structure**
+
 agent.py: The main orchestration script. It initializes the ToolboxSyncClient, loads the specialized toolset, and manages the Gemini 2.0 reasoning loop.
 
 tools.yaml: The MCP configuration file. It defines the SQL and GQL (Graph Query Language) queries that the Agent uses to "see" into the database.
@@ -36,7 +39,9 @@ export GOOGLE_GENAI_USE_VERTEXAI="True"
 4. Run the Agent
 Bash
 python3 agent.py
-🧠 How it Works: The "Behavioral Twin" Logic
+
+**How it Works: The "Behavioral Twin" Logic**
+
 When a user asks: "Should I give CUST-101 a discount?", the agent performs the following "Chain of Thought":
 
 Discovery: Calls get_customer_info to identify the current signal (e.g., LOW_ADOPTION).
@@ -47,7 +52,8 @@ Governance Check: Calls get_policy_details for POL-444 to ensure the recommended
 
 Synthesis: Combines the historical success (e.g., "Strategic Workshops work better than discounts") with the policy to generate the final report.
 
-📋 Example Output
+**Example Output**
+
 Plaintext
 🔍 CUSTOMER GROWTH INTELLIGENCE REPORT
 Account: CUST-101 | Signal: LOW_ADOPTION
