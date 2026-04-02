@@ -2,6 +2,7 @@ import asyncio
 import uuid
 import warnings
 import os
+import json
 from google.adk.agents import Agent
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
@@ -9,128 +10,116 @@ from google.adk.tools import FunctionTool
 from google.genai import types
 from google.cloud import spanner
 
-# --- 1. Environment & Telemetry Suppression ---
-warnings.filterwarnings("ignore", category=UserWarning, module="google_genai")
-
-# SILENCE THE TELEMETRY ERRORS: Disable Spanner and OTEL metrics
+# --- 1. Environment & Telemetry ---
+warnings.filterwarnings("ignore", category=UserWarning)
 os.environ["GOOGLE_CLOUD_SPANNER_ENABLE_METRICS"] = "false"
 os.environ["OTEL_SDK_DISABLED"] = "true"
 
-PROJECT_ID = "xxx"
-INSTANCE_ID = "graph"
-DATABASE_ID = "supportgraph"
+PROJECT_ID = "xxxx"
+INSTANCE_ID = "graphxx"
+DATABASE_ID = "marketinggraph" # Matches your ingestion DB
 
 os.environ["GOOGLE_CLOUD_PROJECT"] = PROJECT_ID
 os.environ["GOOGLE_CLOUD_LOCATION"] = "us-central1"
 os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
 
-# Initialize Spanner Client
-spanner_client = spanner.Client()
+spanner_client = spanner.Client(project=PROJECT_ID)
 instance = spanner_client.instance(INSTANCE_ID)
 database = instance.database(DATABASE_ID)
 
-# --- 2. Robust Tool Functions ---
+# --- 2. Aligned Tool Functions ---
 
-def check_retention_history(customer_id: str):
-    """Lookup historical decisions and outcomes from the Spanner Context Graph."""
+def get_customer_info(customer_id: str):
+    """Retrieves basic customer metadata like Industry and Tier."""
+    sql = "SELECT industry, tier FROM Customers WHERE customer_id = @cid"
+    with database.snapshot() as snapshot:
+        results = snapshot.execute_sql(sql, params={'cid': customer_id}, 
+                                       param_types={'cid': spanner.param_types.STRING})
+        rows = list(results)
+        if rows:
+            return {"industry": rows[0][0], "tier": rows[0][1]}
+        return "Customer not found."
+
+
+def check_retention_history(industry: str, tier: str):
+    """Lookup successful patterns across an entire industry segment."""
+    # We order by timestamp so the Agent sees the most modern 'Success Pathways' first
     gql_query = f"""
-    GRAPH SupportContextGraph
-    MATCH (c:Customers {{customer_id: '{customer_id}'}})<-[:AboutCustomer]-(d:Decisions)
-    MATCH (d)-[:ResultedIn]->(o:Outcomes)
+    GRAPH MarketingContextGraph
+    MATCH (c:Customers {{industry: '{industry}', tier: '{tier}'}})<-[:AboutCustomer]-(d:Decisions)-[:ResultedIn]->(o:Outcomes)
+    WHERE o.result = 'Renewed'
     RETURN 
       d.timestamp AS Date,
       d.type AS Action_Type,
-      d.amount AS Past_Amount,
-      o.result AS Past_Outcome
+      d.reasoning_text AS Success_Logic,
+      o.result AS Outcome
     ORDER BY d.timestamp DESC
     """
     with database.snapshot() as snapshot:
         results = snapshot.execute_sql(gql_query)
-        # Convert to list to avoid iterator errors
         rows = list(results)
-        return [{"date": str(r[0]), "action": r[1], "amount": r[2], "outcome": r[3]} for r in rows]
+        return [{"date": str(r[0]), "type": r[1], "logic": r[2], "outcome": r[3]} for r in rows]
 
 def get_policy_details(policy_id: str):
-    """Retrieves the active corporate rule definition from the Policies table."""
-    sql = "SELECT name, rule_definition, is_active FROM Policies WHERE policy_id = @pid"
+    """Retrieves corporate rules (e.g., POL-444 Margin Protection)."""
+    sql = "SELECT name, rule_definition FROM Policies WHERE policy_id = @pid"
     with database.snapshot() as snapshot:
-        results = snapshot.execute_sql(
-            sql, params={'pid': policy_id}, 
-            param_types={'pid': spanner.param_types.STRING}
-        )
-        # Convert to list and safely access the first row
+        results = snapshot.execute_sql(sql, params={'pid': policy_id}, 
+                                       param_types={'pid': spanner.param_types.STRING})
         rows = list(results)
-        if not rows:
-            return "Policy not found."
-        row = rows[0]
-        return {"name": row[0], "rule": row[1], "active": row[2], "id": policy_id}
+        return {"name": rows[0][0], "rule": rows[0][1]} if rows else "Policy not found."
 
-# --- 3. ADK Tool & Agent Setup ---
+# --- 3. Agent & Report Orchestration ---
 
-tools = [
-    FunctionTool(check_retention_history),
-    FunctionTool(get_policy_details)
-]
-
-async def run_governed_pipeline(text_input: str):
-    user_id = "user_123"
-    session_id = str(uuid.uuid4())
-    APP_NAME = "RetentionApp"
-
-    # Define the Intelligence Report template
-# Updated Instruction for the Growth & Marketing Agent
 report_instruction = (
-    "You are a Senior Growth & Marketing Strategist. Your goal is to maximize Campaign ROI and Long-Term Value (LTV).\n"
-    "Follow these steps for every promotion request:\n"
-    "1. Run 'check_retention_history' to analyze the 'Causal Chain' for this customer.\n"
-    "2. IF history shows a failed discount (Churned outcome), run 'get_policy_details' for 'POL-99' (LTV Optimization).\n"
-    "3. Generate the report using the EXACT layout below, emphasizing 'Institutional Wisdom'.\n"
-    "4. MANDATORY: After presenting the report, call 'log_agent_decision' to codify your reasoning into Spanner.\n\n"
+    "You are a Senior Strategic Growth Agent. Your goal is to provide data-backed recommendations "
+    "by analyzing 'Behavioral Twins' in the Spanner Context Graph.\n\n"
+    
+    "MISSION:\n"
+    "1. FIRST: Use 'get_customer_info' to find the customer's Industry and Tier. "
+    "2. SECOND: Use 'check_retention_history' using that customer's Industry and Tier to find success patterns. "
+    "3. THIRD: Retrieve the 'Margin Protection' policy (POL-444) to ensure the "
+    "   final recommendation is compliant with corporate governance.\n"
+    "4. Finally: Synthesize a 'Success Blueprint' based on the highest-ROI historical path.\n\n"
+    
+    "REPORT STRUCTURE:\n"
     "==================================================\n"
-    "🔍 CONTEXT GRAPH INTELLIGENCE REPORT\n"
-    "==================================================\n"
-    "⚠️ THE LESSON FROM HISTORY (FAILURE CONTEXT)\n"
-    "   • Campaign Offer: [Insert Past Action]\n"
-    "   • The Logic Used: [Insert Past Reasoning]\n"
-    "   • The Result: ❌ [Insert Past Outcome]\n\n"
-    "✅ THE PROVEN ALTERNATIVE (SUCCESS CONTEXT)\n"
-    "   • Campaign Offer: [Insert Successful Action]\n"
-    "   • The Logic Used: [Insert Success Reasoning]\n"
-    "   • The Result: ✨ [Insert Success Outcome]\n\n"
-    "🛡️ THE SMART PIVOT (POLICY ENFORCEMENT)\n"
-    "   • Policy: [Policy Name] (POL-99)\n"
-    "   • Rule: [rule_definition]\n"
-    "   • Final Decision: Pivot to Strategic Advisory Credits (Competitive Edge Workshop).\n"
+    "🔍 CUSTOMER GROWTH INTELLIGENCE REPORT\n"
+    "Account: [Customer Name/ID]\n\n"
+    "⚠️ HISTORICAL FRICTION (The 'What to Avoid')\n"
+    "Identify a pattern where a specific action led to a 'Churned' outcome in this segment.\n\n"
+    "✅ THE SUCCESS PATHWAY (The 'Institutional Wisdom')\n"
+    "Detail a successful 'Renewed' path from a similar customer, explaining the reasoning used.\n\n"
+    "🛡️ GOVERNED RECOMMENDATION\n"
+    "Provide the final recommendation, citing the relevant Policy Rule.\n"
     "=================================================="
 )
 
-    # Initialize Agent
-    agent = Agent(
-        name="retention_specialist",
-        model="gemini-2.0-flash",
-        instruction=report_instruction,
-        tools=tools
-    )
+# Add it to your tools list
+tools = [
+    FunctionTool(get_customer_info),
+    FunctionTool(check_retention_history), # The industry-based one we just made
+    FunctionTool(get_policy_details)
+]
 
-    # Setup Session Service & Runner
-    session_service = InMemorySessionService()
-    await session_service.create_session(app_name=APP_NAME, user_id=user_id, session_id=session_id)
+async def main():
+    agent = Agent(name="growth_strategist", model="gemini-2.0-flash", 
+                  instruction=report_instruction, tools=tools)
     
-    runner = Runner(app_name=APP_NAME, agent=agent, session_service=session_service)
+    session_service = InMemorySessionService()
+    await session_service.create_session(app_name="GrowthApp", user_id="user_123", session_id="session_final")
+    runner = Runner(app_name="GrowthApp", agent=agent, session_service=session_service)
 
-    print(f"🚀 Starting ADK Pipeline... [Session: {session_id}]")
-    current_content = types.Content(role='user', parts=[types.Part(text=text_input)])
+    # User Query triggers the Agent to look up the specific customer we ingested (CUST-101)
+    prompt = "Generate a growth report for CUST-101. Should we offer a discount to stop their usage drop?"
+    content = types.Content(role='user', parts=[types.Part(text=prompt)])
 
-    async for event in runner.run_async(
-        new_message=current_content,
-        user_id=user_id, 
-        session_id=session_id
-    ):
-        if event.author and event.content and event.content.parts:
-            text = event.content.parts[0].text
-            if text:
-                print(f"\n[{event.author}]: {text}")
+    async for event in runner.run_async(new_message=content, user_id="user_123", session_id="session_final"):
+        # 1. Capture and print the final text response
+        if event.is_final_response():
+            final_text = event.content.parts[0].text
+            print(f"\n[Growth Strategist]:\n{final_text}")
+
 
 if __name__ == "__main__":
-    prompt = "Should I give CUST-001 a 50% discount?"
-    asyncio.run(run_governed_pipeline(prompt))
+    asyncio.run(main())
