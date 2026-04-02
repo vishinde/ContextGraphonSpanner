@@ -1,7 +1,9 @@
-🚀 Agentic Context Ingestion
+**Agentic Context Ingestion**
+
 This repository contains the Intelligence Pipeline for building an "Institutional Memory" within Google Cloud Spanner. It transforms unstructured corporate data (PDFs) and semi-structured CRM logs (CSVs) into a high-performance Property Graph.
 
-🏗️ Folder Contents
+**Folder Contents**
+
 createcontextgraph.sql: The blueprint. Contains the DDL for the Spanner schema (Customers, Decisions, Outcomes, Policies) and the MarketingContextGraph definition.
 
 ingestpolicies.py: The Governance Ingestor. Uses Gemini to extract rules from unstructured PDF text and upserts them into the Spanner Policies table.
@@ -12,7 +14,8 @@ crm_history.csv: Sample data containing AE notes, revenue impact, and contract s
 
 Corporate_Retention_Policies.pdf: Sample document containing margin protection and discount rules.
 
-🛠️ Setup & Execution
+**Setup & Execution**
+
 1. Database Initialization
 Before running the ingestion scripts, execute the SQL in your Spanner instance to create the tables and graph structures:
 
@@ -34,10 +37,13 @@ Run the agentic ingestion to build the "Success Pathways" in the graph:
 
 Bash
 python3 agent.py
-🧠 The Ingestion Logic: "Unstructured to Graph"
-The pipeline follows a Deterministic Upsert strategy to ensure the graph remains clean even if scripts are re-run.
 
-The Transformation Flow
+**The Ingestion Logic: "Unstructured to Graph"**
+
+**The pipeline follows a Upsert strategy to ensure the graph remains clean even if scripts are re-run.
+
+The Transformation Logic
+
 Extraction: Gemini reads the ae_notes or pdf_text.
 
 Mapping: Descriptive text is mapped to structured types (e.g., "Metrics down" → LOW_ADOPTION).
@@ -46,5 +52,4 @@ Graph Construction: * Nodes: Created for each unique Customer, Decision, and Out
 
 Edges: Relationships (AboutCustomer, ResultedIn) are built to create a searchable causal chain.
 
-📐 Data Model Visualization
 The resulting Spanner Graph allows an Agent to perform "Behavioral Twin" lookups. By querying this structure, the agent can see which decisions historically led to a Renewed outcome for specific customer signals.
