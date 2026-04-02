@@ -15,7 +15,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 os.environ["GOOGLE_CLOUD_SPANNER_ENABLE_METRICS"] = "false"
 os.environ["OTEL_SDK_DISABLED"] = "true"
 
-PROJECT_ID = "xxxx"
+PROJECT_ID = "xxx" #update project_id
 INSTANCE_ID = "graphxx"
 DATABASE_ID = "marketinggraph" # Matches your ingestion DB
 
@@ -30,8 +30,16 @@ database = instance.database(DATABASE_ID)
 # --- 2. Aligned Tool Functions ---
 
 def get_customer_info(customer_id: str):
-    """Retrieves basic customer metadata like Industry and Tier."""
-    sql = "SELECT industry, tier FROM Customers WHERE customer_id = @cid"
+    """Retrieves industry, tier, and the LATEST risk signal from the Decisions table."""
+    sql = """SELECT 
+            c.industry, 
+            c.tier, 
+            d.signal_type 
+        FROM Customers AS c
+        JOIN Decisions AS d ON c.customer_id = d.customer_id
+        WHERE c.customer_id = @cid
+        ORDER BY d.timestamp DESC
+        LIMIT 1"""
     with database.snapshot() as snapshot:
         results = snapshot.execute_sql(sql, params={'cid': customer_id}, 
                                        param_types={'cid': spanner.param_types.STRING})
@@ -41,24 +49,24 @@ def get_customer_info(customer_id: str):
         return "Customer not found."
 
 
-def check_retention_history(industry: str, tier: str):
-    """Lookup successful patterns across an entire industry segment."""
-    # We order by timestamp so the Agent sees the most modern 'Success Pathways' first
+def check_retention_history(industry: str, tier: str, signal_type: str):
+    """Lookup successful patterns for a specific industry segment and behavioral signal."""
+    # Uses f-string for industry/tier/signal to find 'Behavioral Twins'
     gql_query = f"""
     GRAPH MarketingContextGraph
-    MATCH (c:Customers {{industry: '{industry}', tier: '{tier}'}})<-[:AboutCustomer]-(d:Decisions)-[:ResultedIn]->(o:Outcomes)
+    MATCH (c:Customers {{industry: '{industry}', tier: '{tier}'}})<-[:AboutCustomer]-(d:Decisions {{signal_type: '{signal_type}'}})-[:ResultedIn]->(o:Outcomes)
     WHERE o.result = 'Renewed'
     RETURN 
       d.timestamp AS Date,
-      d.type AS Action_Type,
-      d.reasoning_text AS Success_Logic,
-      o.result AS Outcome
+      d.decision_type AS Action_Type,
+      d.reasoning_text AS Success_Logic
     ORDER BY d.timestamp DESC
+    LIMIT 3
     """
     with database.snapshot() as snapshot:
         results = snapshot.execute_sql(gql_query)
         rows = list(results)
-        return [{"date": str(r[0]), "type": r[1], "logic": r[2], "outcome": r[3]} for r in rows]
+        return [{"date": str(r[0]), "type": r[1], "logic": r[2]} for r in rows]
 
 def get_policy_details(policy_id: str):
     """Retrieves corporate rules (e.g., POL-444 Margin Protection)."""
@@ -74,18 +82,21 @@ def get_policy_details(policy_id: str):
 report_instruction = (
     "You are a Senior Strategic Growth Agent. Your goal is to provide data-backed recommendations "
     "by analyzing 'Behavioral Twins' in the Spanner Context Graph.\n\n"
+    "IMPORTANT: When identifying a customer's 'current_signal', "
+    "you MUST map it to one of these exact categories: [LOW_ADOPTION, BUDGET_CONSTRAINTS, COMPETITOR_THREAT].\n\n"
     
     "MISSION:\n"
-    "1. FIRST: Use 'get_customer_info' to find the customer's Industry and Tier. "
-    "2. SECOND: Use 'check_retention_history' using that customer's Industry and Tier to find success patterns. "
-    "3. THIRD: Retrieve the 'Margin Protection' policy (POL-444) to ensure the "
-    "   final recommendation is compliant with corporate governance.\n"
-    "4. Finally: Synthesize a 'Success Blueprint' based on the highest-ROI historical path.\n\n"
+    "1. FIRST: Use 'get_customer_info' to find the customer's Industry, Tier, and 'current_signal'.\n"
+    "2. SECOND: Use 'check_behavioral_success' using that specific Industry, Tier, and Signal with the EXACT Signal name (e.g., 'LOW_ADOPTION'). "
+    "   This identifies the 'Success Pathway' for that specific problem.\n"
+    "3. THIRD: Retrieve policy 'POL-444' for governance.\n"
+    "4. Finally: Synthesize a 'Success Blueprint' based on the highest-ROI historical path by comparing the current customer's situation "
+    "   to the successful 'Behavioral Twin' found in the graph.\n\n"
     
     "REPORT STRUCTURE:\n"
     "==================================================\n"
     "🔍 CUSTOMER GROWTH INTELLIGENCE REPORT\n"
-    "Account: [Customer Name/ID]\n\n"
+    "Account: [Customer Name/ID]| Signal: [current_signal]\n\n"
     "⚠️ HISTORICAL FRICTION (The 'What to Avoid')\n"
     "Identify a pattern where a specific action led to a 'Churned' outcome in this segment.\n\n"
     "✅ THE SUCCESS PATHWAY (The 'Institutional Wisdom')\n"
@@ -119,6 +130,11 @@ async def main():
         if event.is_final_response():
             final_text = event.content.parts[0].text
             print(f"\n[Growth Strategist]:\n{final_text}")
+        # 2. OPTIONAL: Print tool calls so you know the Agent is working
+        elif event.content and event.content.parts:
+            for part in event.content.parts:
+                if part.function_call:
+                    print(f"🛠️  Agent calling tool: {part.function_call.name}...")
 
 
 if __name__ == "__main__":
