@@ -4,7 +4,7 @@ This project demonstrates how to build a System of Intelligence using Google Clo
 Repository Structure
 The repository is organized into three progressive stages of implementation:
 
-1. agenticingestion/ (The Memory Pipeline)
+1. **agenticingestion**/ (The Memory Pipeline)
 Goal: Build the Institutional Memory.
 
 Purpose: Ingests unstructured PDF policies and CRM CSV logs.
@@ -13,7 +13,7 @@ Logic: Uses Gemini to extract causal relationships (Decision → Outcome) and co
 
 Key Files: ingestpolicies.py, agent.py (ingestor), createcontextgraph.sql.
 
-2. customergrowthagent/ (The Direct Strategist)
+2. **customergrowthagent**/ (The Direct Strategist)
 Goal: Reasoning via Direct Database Access.
 
 Purpose: A production-ready agent that queries Spanner directly using Python FunctionTools.
@@ -22,7 +22,7 @@ Logic: Performs "Behavioral Twin" lookups to find successful historical patterns
 
 Key Files: agent.py, insightsfromcontextgraph.sql.
 
-3. customergrowthagentwmcptoolbox/ (The Managed Integration)
+3. **customergrowthagentwmcptoolbox**/ (The Managed Integration)
 Goal: Scalable Tooling via Model Context Protocol (MCP).
 
 Purpose: Decouples the Agent from the Database logic using the MCP Toolbox.
@@ -31,7 +31,7 @@ Logic: Uses a tools.yaml configuration to map natural language intent to high-pe
 
 Key Files: agent.py, tools.yaml.
 
-Technical Architecture
+**Technical Architecture**
 Ingestion: Gemini 2.0 parses PDFs and CSVs, mapping them to a Property Graph schema in Spanner.
 
 Storage: Spanner Graph stores "Institutional Wisdom"—which actions led to renewals and which led to churn.
