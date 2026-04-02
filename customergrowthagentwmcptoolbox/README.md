@@ -18,7 +18,7 @@ agent.py: The main orchestration script. It initializes the ToolboxSyncClient, l
 
 tools.yaml: The MCP configuration file. It defines the SQL and GQL (Graph Query Language) queries that the Agent uses to "see" into the database.
 
-🛠️ Setup & Installation
+Setup & Installation
 1. Prerequisites
 A Google Cloud Project with Cloud Spanner enabled.
 
