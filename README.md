@@ -1,46 +1,65 @@
-This repository demonstrates how to build a Context Graph using Google Cloud Spanner Graph and the Google ADK. By unifying operational state, decision history, and corporate policy in a single globally consistent environment, we move from a simple "System of Record" to a "System of Intelligence".
+Governed Growth Strategist: A Spanner Graph System of Intelligence
+This project demonstrates how to build a System of Intelligence using Google Cloud Spanner Graph and Gemini 2.0. It transforms unstructured corporate "noise" (PDFs, Slack, CRM logs) into a structured Context Graph that an AI Agent uses to make data-backed, governed business decisions.
 
-🏗️ The Agentic Stack
-This implementation focuses on a Local Function Tool approach, allowing developers to build agentic workflows without requiring an external MCP (Model Context Protocol) server.
+Repository Structure
+The repository is organized into three progressive stages of implementation:
 
-Foundation: Google Cloud Spanner Graph.
+1. agenticingestion/ (The Memory Pipeline)
+Goal: Build the Institutional Memory.
 
-Orchestration: Google ADK (Agent Development Kit).
+Purpose: Ingests unstructured PDF policies and CRM CSV logs.
 
-Intelligence: Gemini 2.0 Flash.
+Logic: Uses Gemini to extract causal relationships (Decision → Outcome) and corporate guardrails.
 
-📂 Repository Structure
-agent.py: The core ADK implementation. It manages the multi-turn reasoning loop, enforcing policies before delivering an Intelligence Report.
+Key Files: ingestpolicies.py, agent.py (ingestor), createcontextgraph.sql.
 
-ContextGraph.sql: The DDL and DML scripts to initialize your Spanner Graph, including Nodes (Customers, Policies, Decisions, Outcomes) and Edges.
+2. customergrowthagent/ (The Direct Strategist)
+Goal: Reasoning via Direct Database Access.
 
-ContextGraphOnSpanner.ipynb: A companion notebook for rapid prototyping of GQL (Graph Query Language) patterns.
+Purpose: A production-ready agent that queries Spanner directly using Python FunctionTools.
 
-🚀 Getting Started
-1. Initialize Spanner Graph
-Run the contents of ContextGraph.sql in your Spanner instance to create the schema and seed the "Institutional Memory".
+Logic: Performs "Behavioral Twin" lookups to find successful historical patterns for specific customer segments.
 
-2. Configure Environment
-Set your Google Cloud credentials and project details:
+Key Files: agent.py, insightsfromcontextgraph.sql.
 
-Bash
-export GOOGLE_CLOUD_PROJECT="your-project-id"
-export GOOGLE_CLOUD_LOCATION="us-central1"
-export GOOGLE_GENAI_USE_VERTEXAI="True"
-3. Install Dependencies
-Bash
-pip install google-cloud-spanner google-adk google-genai
-4. Run the Agent
-Bash
-python3 agent.py
-🛡️ The Intelligence Loop
-This agent doesn't just "chat"; it follows a governed lifecycle:
+3. customergrowthagentwmcptoolbox/ (The Managed Integration)
+Goal: Scalable Tooling via Model Context Protocol (MCP).
 
-Recall: Traversing the Graph to find similar historical outcomes (The Event Clock).
+Purpose: Decouples the Agent from the Database logic using the MCP Toolbox.
 
-Govern: Checking active corporate mandates in the Policies table (The Policy Guardrail).
+Logic: Uses a tools.yaml configuration to map natural language intent to high-performance SQL/GQL queries.
 
-Codify: Writing its final reasoning back into Spanner, growing the graph for future runs.
+Key Files: agent.py, tools.yaml.
 
-💡 Why Spanner Graph?
-Unlike traditional Vector RAG, a Context Graph on Spanner provides deterministic reliability. It ensures your AI agents are governed by the same ACID-compliant rigor as your financial transactions, delivering high-fidelity responses at global scale.
+Technical Architecture
+Ingestion: Gemini 2.0 parses PDFs and CSVs, mapping them to a Property Graph schema in Spanner.
+
+Storage: Spanner Graph stores "Institutional Wisdom"—which actions led to renewals and which led to churn.
+
+Governance: The Policies table acts as a real-time guardrail, ensuring AI recommendations stay within legal/financial limits.
+
+Action: The Agent synthesizes history + policy to generate a Success Blueprint.
+
+Quick Start
+Prerequisites
+Google Cloud Project with a Spanner Instance.
+
+Python 3.10+
+
+Gemini 2.0 API access (Vertex AI).
+
+Installation
+Initialize Schema: Run agenticingestion/createcontextgraph.sql in Spanner Studio.
+
+Populate Data: Run the scripts in agenticingestion/ to load your initial policies and history.
+
+Run the Agent: Choose your preferred implementation (Direct or MCP) and run the respective agent.py.
+
+The "Behavioral Twin" Methodology
+Standard RAG (Retrieval-Augmented Generation) often lacks context. This system shows the power of Context Graph on Spanner:
+
+Nodes: Customers, Decisions, Outcomes, Policies.
+
+Edges: AboutCustomer, ResultedIn.
+
+Instead of searching for keywords, the Agent asks Spanner: "Show me other Gold-tier Manufacturing accounts that faced a 30% usage drop. What did we do, and did it work?"
