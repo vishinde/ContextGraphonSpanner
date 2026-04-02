@@ -9,9 +9,11 @@ CREATE TABLE Customers (
 
 CREATE TABLE Decisions (
   decision_id STRING(MAX) NOT NULL,
-  type STRING(MAX),
-  reasoning_text STRING(MAX),
-  timestamp TIMESTAMP,
+  customer_id STRING(MAX) NOT NULL,
+  signal_type STRING(MAX) NOT NULL,   -- e.g., 'LOW_ADOPTION', 'COMPETITOR_THREAT'
+  decision_type STRING(MAX) NOT NULL, -- e.g., 'Strategic Advisory Workshop', 'Discount'
+  reasoning_text STRING(MAX),        -- The Gemini-extracted summary
+  timestamp TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true),
 ) PRIMARY KEY (decision_id);
 
 CREATE TABLE Policies (
