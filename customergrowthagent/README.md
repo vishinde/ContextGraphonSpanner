@@ -1,12 +1,13 @@
-Agentic Growth Strategist (Direct Spanner)
+**Agentic Growth Strategist (Direct Spanner Interaction)**
+
 This repository contains a System of Intelligence designed to provide governed growth recommendations by querying a "Context Graph" stored in Google Cloud Spanner. Unlike the MCP version, this implementation uses direct Python tools to interact with Spanner SQL and GQL.
 
-🏗️ Folder Contents
+**Folder Contents**
 agent.py: The main orchestration script. It uses Gemini 2.0 and the Google ADK to process customer friction through local FunctionTools.
 
 contextgraph.sql: The Data Definition Language (DDL) for the Spanner instance, including the Customers, Decisions, Outcomes, and Policies tables, along with the MarketingContextGraph definition.
 
-System Architecture
+**System Architecture**
 The system operates on three distinct data layers:
 
 Temporal Identity: Basic customer metadata (Industry, Tier).
