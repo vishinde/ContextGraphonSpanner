@@ -22,23 +22,21 @@ Corporate_Retention_Policies.pdf: Sample document containing margin protection a
 1. Database Initialization
 Before running the ingestion scripts, execute the SQL in your Spanner instance to create the tables and graph structures:
 
-Bash
 Run createcontextgraph.sql in the Spanner Studio
 2. Environment Configuration
 Ensure your Google Cloud credentials and project settings are active:
 
-Bash
+
 export GOOGLE_CLOUD_PROJECT="your-project-id"
 export GOOGLE_GENAI_USE_VERTEXAI="True"
+
 3. Ingest Governance (PDF)
 Extract corporate rules into the Governance layer:
 
-Bash
 python3 ingestpolicies.py
 4. Ingest Historical Context (CSV)
 Run the agentic ingestion to build the "Success Pathways" in the graph:
 
-Bash
 python3 agent.py
 
 **The Ingestion Logic: Unstructured to Graph**
