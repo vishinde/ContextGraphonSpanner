@@ -12,6 +12,12 @@ Governance Layer: Corporate policies (extracted from PDFs) stored in Spanner SQL
 
 Action Layer: A Gemini 2.0 Agent that uses the MCP Toolbox to query both memory and rules to synthesize a recommendation.
 
+Foundation: Google Cloud Spanner Graph — Storing the State, Event, and Policy clocks.
+
+The Bridge: MCP Toolbox — A secure "handshake" that turns SQL/GQL queries into executable AI tools.
+
+The Brain: Google ADK (Agent Development Kit) — Orchestrating the reasoning loop and enforcing governance.
+
 **File Structure**
 
 agent.py: The main orchestration script. It initializes the ToolboxSyncClient, loads the specialized toolset, and manages the Gemini 2.0 reasoning loop.
@@ -29,23 +35,20 @@ The MCP Toolbox server running locally or on Google Cloud Run/GCE/GKE instance.
 Make sure toolbox-core is install for local deployment and testing
 pip install toolbox-core 
 
-2. Configure the Toolbox
-Ensure your tools.yaml is registered with your MCP server. The toolbox maps the natural language intent of the Agent to the high-performance queries defined in the YAML.
+2. GettingStarted
 
-3. Environment Variables
-Set your Google Cloud credentials before running the agent:
+Start the MCP Toolbox
+Launch the toolbox server to expose your Spanner tools over HTTP:
 
 Bash
 
-export GOOGLE_CLOUD_PROJECT="your-project-id"
+./toolbox --tools-file "tools.yaml"
+Wait for the log: INFO: Initialized 3 tools: check_retention_history, get_policy_details, get_customer_info
 
-export GOOGLE_CLOUD_LOCATION="us-central1"
+3. Run the Agent
+In a separate terminal, execute the ADK Agent:
 
-export GOOGLE_GENAI_USE_VERTEXAI="True"
-
-
-4. Run the Agent
-
+Bash
 python3 agent.py
 
 **How it Works: The "Behavioral Twin" Logic**
