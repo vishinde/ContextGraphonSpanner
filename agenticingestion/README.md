@@ -34,7 +34,9 @@ export GOOGLE_GENAI_USE_VERTEXAI="True"
 Extract corporate rules into the Governance layer:
 
 python3 ingestpolicies.py
+
 4. Ingest Historical Context (CSV)
+
 Run the agentic ingestion to build the "Success Pathways" in the graph:
 
 python3 agent.py
