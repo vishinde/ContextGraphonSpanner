@@ -33,6 +33,7 @@ Ensure your tools.yaml is registered with your MCP server. The toolbox maps the 
 Set your Google Cloud credentials before running the agent:
 
 Bash
+
 export GOOGLE_CLOUD_PROJECT="your-project-id"
 
 export GOOGLE_CLOUD_LOCATION="us-central1"
