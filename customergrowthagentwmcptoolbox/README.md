@@ -24,7 +24,10 @@ A Google Cloud Project with Cloud Spanner enabled.
 
 A Spanner database containing the MarketingContextGraph.
 
-The MCP Toolbox server running locally or on a GCE instance.
+The MCP Toolbox server running locally or on Google Cloud Run/GCE/GKE instance.
+
+Make sure toolbox-core is install for local deployment and testing
+pip install toolbox-core 
 
 2. Configure the Toolbox
 Ensure your tools.yaml is registered with your MCP server. The toolbox maps the natural language intent of the Agent to the high-performance queries defined in the YAML.
