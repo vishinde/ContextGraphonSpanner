@@ -2,7 +2,7 @@
 sources:
   spanner-graph-db:
     kind: spanner
-    project: "bq-project-402513"
+    project: "xxxx"
     instance: "graph"
     database: "supportgraph"
 
