@@ -34,8 +34,11 @@ Set your Google Cloud credentials before running the agent:
 
 Bash
 export GOOGLE_CLOUD_PROJECT="your-project-id"
+
 export GOOGLE_CLOUD_LOCATION="us-central1"
+
 export GOOGLE_GENAI_USE_VERTEXAI="True"
+
 
 4. Run the Agent
 
