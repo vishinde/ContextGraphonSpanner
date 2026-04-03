@@ -23,7 +23,7 @@ Corporate_Retention_Policies.pdf: Sample document containing margin protection a
 Before running the ingestion scripts, execute the SQL in your Spanner instance to create the tables and graph structures:
 
 Bash
-# Run createcontextgraph.sql in the Spanner Studio
+Run createcontextgraph.sql in the Spanner Studio
 2. Environment Configuration
 Ensure your Google Cloud credentials and project settings are active:
 
