@@ -2,16 +2,17 @@
 sources:
   spanner-graph-db:
     kind: spanner
-    project: "xxxx"
+    project: "bq-project-402513"
     instance: "graph"
     database: "supportgraph"
 
-
 tools:
   # 1. Get Customer Metadata and Current Signal
-  - name: "get_customer_info"
-    description: "Retrieves industry, tier, and the LATEST risk signal for a specific customer from Spanner."
-    query: |
+  get_customer_info:
+    kind: spanner-sql
+    source: spanner-graph-db
+    description: Retrieves industry, tier, and the LATEST risk signal for a specific customer from Spanner.
+    statement: |
       SELECT 
         c.industry, 
         c.tier, 
@@ -22,14 +23,16 @@ tools:
       ORDER BY d.timestamp DESC
       LIMIT 1
     parameters:
-      - name: "customer_id"
-        type: "string"
-        description: "The unique ID of the customer (e.g., CUST-101)."
+      - name: customer_id
+        type: string
+        description: The unique ID of the customer (e.g., CUST-101).
 
   # 2. Behavioral Twin Graph Lookup
-  - name: "check_retention_history"
-    description: "Searches the Spanner Context Graph for 'Behavioral Twins'—similar customers who had the same signal and successfully renewed."
-    query: |
+  check_retention_history:
+    kind: spanner-sql
+    source: spanner-graph-db
+    description: Searches the Spanner Context Graph for 'Behavioral Twins'—similar customers who had the same signal and successfully renewed.
+    statement: |
       GRAPH MarketingContextGraph
       MATCH (c:Customers {industry: $1, tier: $2})<-[:AboutCustomer]-(d:Decisions {signal_type: $3})-[:ResultedIn]->(o:Outcomes)
       WHERE o.result = 'Renewed'
@@ -40,25 +43,30 @@ tools:
       ORDER BY d.timestamp DESC
       LIMIT 3
     parameters:
-      - name: "industry"
-        type: "string"
-      - name: "tier"
-        type: "string"
-      - name: "signal_type"
-        type: "string"
+      - name: industry
+        type: string
+        description: The industry sector of the customer (e.g., Manufacturing).
+      - name: tier
+        type: string
+        description: The customer's service tier (e.g., Gold).
+      - name: signal_type
+        type: string
         description: "The mapped signal category: LOW_ADOPTION, BUDGET_CONSTRAINTS, or COMPETITOR_THREAT."
 
   # 3. Policy Retrieval (Governance)
-  - name: "get_policy_details"
-    description: "Retrieves specific corporate governance rules from the Policies table."
-    query: |
+  get_policy_details:
+    kind: spanner-sql
+    source: spanner-graph-db
+    description: Retrieves specific corporate governance rules from the Policies table.
+    statement: |
       SELECT name, rule_definition 
       FROM Policies 
       WHERE policy_id = $1
     parameters:
-      - name: "policy_id"
-        type: "string"
-        description: "The ID of the policy (e.g., POL-444)."
+      - name: policy_id
+        type: string
+        description: The ID of the policy (e.g., POL-444).
+
 # Group it under 'default' which the server is already initializing
 toolsets:
   my_graph_toolset:
