@@ -1,8 +1,10 @@
 **Governed Growth Strategist: A Spanner Graph System of Intelligence**
+=======================================================================
 
 This project demonstrates how to build a System of Intelligence using Google Cloud Spanner Graph and Gemini 2.0. It transforms unstructured disparate corporate data (PDFs, Slack, CRM logs) into a structured Context Graph that an AI Agent uses to make data-backed, governed business decisions.
 
 **Repository Structure**
+=========================
 
 The repository is organized into three progressive stages of implementation:
 
@@ -34,6 +36,7 @@ Logic: Uses a tools.yaml configuration to map natural language intent to high-pe
 Key Files: agent.py, tools.yaml.
 
 **Technical Architecture**
+==========================
 
 Ingestion: Gemini 2.0 parses PDFs and CSVs, mapping them to a Property Graph schema in Spanner.
 
@@ -59,6 +62,7 @@ Populate Data: Run the scripts in agenticingestion/ to load your initial policie
 Run the Agent: Choose your preferred implementation (Direct or MCP) and run the respective agent.py.
 
 The "Behavioral Twin" Methodology
+=================================
 Standard RAG (Retrieval-Augmented Generation) often lacks context. This system shows the power of Context Graph on Spanner:
 
 Nodes: Customers, Decisions, Outcomes, Policies.
