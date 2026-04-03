@@ -32,7 +32,7 @@ A Spanner database containing the MarketingContextGraph.
 
 The MCP Toolbox server running locally or on Google Cloud Run/GCE/GKE instance.
 
-Make sure toolbox-core is install for local deployment and testing
+Make sure toolbox-core is install for local deployment and testing. Version used for this code's testing: VERSION=0.31.0
 pip install toolbox-core 
 
 2. GettingStarted
