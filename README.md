@@ -1,72 +1,65 @@
-**Governed Growth Strategist: A Spanner Graph System of Intelligence**
-=======================================================================
+# Governed Growth Strategist
+### A Spanner Graph System of Intelligence
 
-This project demonstrates how to build a System of Intelligence using Google Cloud Spanner Graph and Gemini 2.0. It transforms unstructured disparate corporate data (PDFs, Slack, CRM logs) into a structured Context Graph that an AI Agent uses to make data-backed, governed business decisions.
+This project demonstrates a **System of Intelligence** built on **Google Cloud Spanner Graph** and **Gemini 2.0**. It transforms unstructured corporate data—such as PDFs, Slack messages, and CRM logs—into a structured **Context Graph**, enabling AI Agents to make data-backed, governed business decisions.
 
-**Repository Structure**
-=========================
+---
+
+## Repository Structure
 
 The repository is organized into three progressive stages of implementation:
 
-1. **agenticingestion**/ (The Institutional Memory Pipeline)
-Goal: Build the Context Graph in Spanner.
+### 1. agenticingestion/ — The Institutional Memory Pipeline
+* **Goal:** Build the initial Context Graph in Spanner.
+* **Purpose:** Ingests unstructured PDF policies and CRM logs (CSV).
+* **Logic:** Uses Gemini to extract causal relationships (Decision -> Outcome) and corporate guardrails.
+* **Key Files:** `ingestpolicies.py`, `agent.py` (ingestor), `createcontextgraph.sql`.
 
-Purpose: Ingests unstructured PDF policies and CRM CSV logs.
+### 2. customergrowthagent/ — The Direct Strategist
+* **Goal:** Reasoning via Direct Database Access.
+* **Purpose:** A production-ready agent querying Spanner via Python `FunctionTools`.
+* **Logic:** Performs **"Behavioral Twin"** lookups to find historical success patterns for similar customer profiles.
+* **Key Files:** `agent.py`, `insightsfromcontextgraph.sql`.
 
-Logic: Uses Gemini to extract causal relationships (Decision → Outcome) and corporate guardrails.
+### 3. customergrowthagentwmcptoolbox/ — The Managed Integration
+* **Goal:** Scalable Tooling via MCP Toolbox.
+* **Purpose:** Decouples the Agent from database logic using the **Model Context Protocol (MCP)**.
+* **Logic:** Uses a `tools.yaml` configuration to map natural language intent to high-performance SQL/GQL queries.
+* **Key Files:** `agent.py`, `tools.yaml`.
 
-Key Files: ingestpolicies.py, agent.py (ingestor), createcontextgraph.sql.
+### Note: The benchmarkagenticingestion folder is optional code. It demonstrates options for benchmarking on agenticingestion pipeline.
+---
 
-2. **customergrowthagent**/ (The Direct Strategist)
-Goal: Reasoning via Direct Database Access.
+## Technical Architecture
 
-Purpose: A production-ready agent that queries Spanner directly using Python FunctionTools.
+| Phase | Description |
+| :--- | :--- |
+| **Ingestion** | Gemini 2.0 parses PDFs and CSVs, mapping them to a Property Graph schema in Spanner. |
+| **Storage** | Spanner Graph stores **Institutional Wisdom** (Success vs. Churn pathways). |
+| **Governance** | The `Policies` table acts as a real-time guardrail for AI recommendations. |
+| **Action** | The Agent synthesizes history and policy to generate a **Success Blueprint**. |
 
-Logic: Performs "Behavioral Twin" lookups to find successful historical patterns for similar customer profile.
+---
 
-Key Files: agent.py, insightsfromcontextgraph.sql.
+## The "Behavioral Twin" Methodology
 
-3. **customergrowthagentwmcptoolbox**/ (The Managed Integration)
-Goal: Scalable Tooling via Model Context Protocol (MCP) Toolbox for Databases.
+Standard Retrieval-Augmented Generation (RAG) often lacks structural context. This system utilizes a **Context Graph** on Spanner to provide deeper relational insights:
 
-Purpose: Decouples the Agent from the Database logic using the MCP Toolbox.
+* **Nodes:** `Customers`, `Decisions`, `Outcomes`, `Policies`.
+* **Edges:** `AboutCustomer`, `ResultedIn`.
 
-Logic: Uses a tools.yaml configuration to map natural language intent to high-performance SQL/GQL queries.
+> **The Graph Advantage:** Instead of basic keyword searches, the Agent performs relational queries: *"Show me other Gold-tier Manufacturing accounts that faced a 30% usage drop. What specific actions were taken, and what was the resulting outcome?"*
 
-Key Files: agent.py, tools.yaml.
+---
 
-**Technical Architecture**
-==========================
+## Quick Start
 
-Ingestion: Gemini 2.0 parses PDFs and CSVs, mapping them to a Property Graph schema in Spanner.
+### Prerequisites
+* Google Cloud Project with an active Spanner Instance.
+* Python 3.10+
+* Gemini 2.0 API access via Vertex AI.
 
-Storage: Spanner Graph stores "Institutional Wisdom"—which actions led to renewals and which led to churn.
-
-Governance: The Policies table acts as a real-time guardrail, ensuring AI recommendations stay within legal/financial limits.
-
-Action: The Agent synthesizes history + policy to generate a Success Blueprint.
-
-Quick Start
-Prerequisites
-Google Cloud Project with a Spanner Instance.
-
-Python 3.10+
-
-Gemini 2.0 API access (Vertex AI).
-
-Installation
-Initialize Schema: Run agenticingestion/createcontextgraph.sql in Spanner Studio.
-
-Populate Data: Run the scripts in agenticingestion/ to load your initial policies and history.
-
-Run the Agent: Choose your preferred implementation (Direct or MCP) and run the respective agent.py.
-
-The "Behavioral Twin" Methodology
-=================================
-Standard RAG (Retrieval-Augmented Generation) often lacks context. This system shows the power of Context Graph on Spanner:
-
-Nodes: Customers, Decisions, Outcomes, Policies.
-
-Edges: AboutCustomer, ResultedIn.
-
-Instead of searching for keywords, the Agent asks Spanner: "Show me other Gold-tier Manufacturing accounts that faced a 30% usage drop. What did we do, and did it work?"
+### Installation
+1. **Initialize Schema:** Run `agenticingestion/createcontextgraph.sql` in Spanner Studio.
+2. **Populate Data:** Run the scripts in `agenticingestion/` to load initial policies and history.
+3. **Run the Agent:** Choose the preferred implementation (Direct or MCP) and run the respective `agent.py`.
